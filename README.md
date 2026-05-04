@@ -1,3 +1,24 @@
-# Welcome to your Lovable project
+# Hellmuth & Rühling Rechtsanwälte
 
-TODO: Document your project here
+Offizielle Website der Kanzlei Hellmuth & Rühling Rechtsanwälte in Leipzig.
+
+## Technologie-Stack
+
+- React 18
+- TypeScript
+- Vite
+- Tailwind CSS
+- Radix UI
+
+## Entwicklung
+
+```bash
+npm install
+npm run dev
+```
+
+## Build
+
+```bash
+npm run build
+```
