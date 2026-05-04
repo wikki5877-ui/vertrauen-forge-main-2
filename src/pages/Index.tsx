@@ -1,8 +1,6 @@
-import { useEffect, useRef, useState } from "react";
-import heroVideo from "@/assets/hero-lawyer.mp4.asset.json";
+import { useEffect, useState } from "react";
+import heroVideo from "@/assets/ты_ублюдок_или_что_за_что_я_по.mp4";
 import portraitHellmuth from "@/assets/portrait-hellmuth.jpg";
-import officeInterior from "@/assets/office-interior.jpg";
-import FeaturedAreas from "@/components/FeaturedAreas";
 import PracticeAreas from "@/components/PracticeAreas";
 import Process from "@/components/Process";
 import News from "@/components/News";
@@ -38,36 +36,19 @@ function useReveal() {
   }, []);
 }
 
-function CountUp({ to, suffix = "" }: { to: number; suffix?: string }) {
-  const [n, setN] = useState(0);
-  const ref = useRef<HTMLSpanElement>(null);
-  const started = useRef(false);
-  useEffect(() => {
-    if (!ref.current) return;
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting && !started.current) {
-          started.current = true;
-          const start = performance.now();
-          const dur = 1800;
-          const tick = (t: number) => {
-            const p = Math.min(1, (t - start) / dur);
-            const eased = 1 - Math.pow(1 - p, 3);
-            setN(Math.round(to * eased));
-            if (p < 1) requestAnimationFrame(tick);
-          };
-          requestAnimationFrame(tick);
-        }
-      });
-    }, { threshold: 0.5 });
-    io.observe(ref.current);
-    return () => io.disconnect();
-  }, [to]);
-  return <span ref={ref}>{n.toLocaleString("de-DE")}{suffix}</span>;
-}
+
+const NAV_LINKS = [
+  { href: "#top",                label: "Startseite" },
+  { href: "#kanzlei",            label: "Kanzlei" },
+  { href: "#rechtsgebiete-grid", label: "Rechtsgebiete" },
+  { href: "#anwaelte",           label: "Anwälte" },
+  { href: "#journal",            label: "Journal" },
+  { href: "#kontakt",            label: "Kontakt" },
+];
 
 const Index = () => {
   const [scrolled, setScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   useReveal();
 
   useEffect(() => {
@@ -76,8 +57,23 @@ const Index = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [mobileOpen]);
+
   return (
     <div className="bg-void text-ink min-h-screen overflow-x-hidden">
+
+      {/* Mobile nav overlay */}
+      <nav className={`mob-nav${mobileOpen ? " open" : ""}`} aria-hidden={!mobileOpen}>
+        {NAV_LINKS.map(({ href, label }) => (
+          <a key={href} href={href} className="mob-nav-link" onClick={() => setMobileOpen(false)}>
+            {label}
+          </a>
+        ))}
+        <p className="mob-nav-tagline font-mono-ed">RECHTSANWÄLTE · LEIPZIG</p>
+      </nav>
 
       {/* NAV */}
       <header
@@ -85,18 +81,27 @@ const Index = () => {
           scrolled ? "nav-blur py-4" : "py-6"
         }`}
       >
-        <nav className="max-w-[1400px] mx-auto px-8 flex items-center justify-between" aria-label="Hauptnavigation">
+        <nav className="max-w-[1400px] mx-auto px-6 md:px-8 flex items-center justify-between" aria-label="Hauptnavigation">
           <a href="#top" className="font-display italic text-gold text-[1.4rem] leading-none">H&amp;R</a>
           <div className="hidden md:flex items-center gap-10">
-            <a href="#top" className="nav-link">Startseite</a>
-            <a href="#rechtsgebiete" className="nav-link">Schwerpunkte</a>
-            <a href="#anwaelte" className="nav-link">Anwälte</a>
-            <a href="#journal" className="nav-link">Journal</a>
-            <a href="#kontakt" className="nav-link">Kontakt</a>
+            {NAV_LINKS.map(({ href, label }) => (
+              <a key={href} href={href} className="nav-link">{label}</a>
+            ))}
           </div>
           <span className="hidden md:block font-mono-ed text-ghost" style={{ fontSize: "0.55rem", letterSpacing: "0.3em" }}>
             RECHTSANWÄLTE · LEIPZIG
           </span>
+          {/* Hamburger — mobile only */}
+          <button
+            className="mob-ham md:hidden"
+            onClick={() => setMobileOpen(o => !o)}
+            aria-label={mobileOpen ? "Menü schließen" : "Menü öffnen"}
+            aria-expanded={mobileOpen}
+          >
+            <span style={{ transform: mobileOpen ? "translateY(6px) rotate(45deg)" : "none" }} />
+            <span style={{ opacity: mobileOpen ? 0 : 1 }} />
+            <span style={{ transform: mobileOpen ? "translateY(-6px) rotate(-45deg)" : "none" }} />
+          </button>
         </nav>
       </header>
 
@@ -110,9 +115,8 @@ const Index = () => {
             muted
             playsInline
             preload="metadata"
-            poster=""
           >
-            <source src={heroVideo.url} type="video/mp4" />
+            <source src={heroVideo} type="video/mp4" />
           </video>
           <div
             className="absolute inset-0"
@@ -152,73 +156,8 @@ const Index = () => {
 
         <About />
 
-        {/* NUMBERS */}
-        <section className="bg-surface" aria-label="Kennzahlen">
-          <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-3">
-            {[
-              { n: 35, suf: "+", l: "Jahre Erfahrung" },
-              { n: 1000, suf: "+", l: "Erfolgreich betreute Mandanten" },
-              { n: 5, suf: ",0 ★", l: "Google Bewertung" },
-            ].map((it, i) => (
-              <div
-                key={i}
-                className={`reveal py-20 px-10 text-center ${i > 0 ? "md:border-l" : ""}`}
-                style={{ borderColor: "rgba(184,150,90,0.12)" }}
-                data-stagger={i}
-              >
-                <div className="font-display italic text-gold font-light" style={{ fontSize: "5rem", lineHeight: 1 }}>
-                  <CountUp to={it.n} suffix={it.suf} />
-                </div>
-                <div className="mt-6 font-mono-ed text-ghost uppercase" style={{ fontSize: "0.6rem", letterSpacing: "0.3em" }}>
-                  {it.l}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
 
         <Awards />
-        <section className="py-32 px-8" aria-label="Über die Kanzlei">
-          <div className="max-w-[1400px] mx-auto grid md:grid-cols-2 gap-16 items-center">
-            <div className="reveal">
-              <div className="label-mono mb-10">01 — KANZLEI</div>
-              <h2 className="font-display font-light text-ink leading-[1.05]" style={{ fontSize: "4rem" }}>
-                Drei <em className="text-gold-bright">Jahrzehnte</em><br />
-                Vertrauen.
-              </h2>
-              <p className="mt-12 max-w-md text-ghost" style={{ fontSize: "0.95rem", lineHeight: 1.9, fontWeight: 300 }}>
-                Seit 1990 in Leipzig-Gohlis. Persönlich. Diskret. Bundesweit.
-              </p>
-              <div className="mt-12 font-display italic text-gold-bright" style={{ fontSize: "1.4rem", lineHeight: 1.5 }}>
-                „Vertrauen entsteht in der Sorgfalt.“
-              </div>
-              <div className="mt-4 font-mono-ed text-ghost uppercase" style={{ fontSize: "0.6rem", letterSpacing: "0.3em" }}>
-                — Rainer Hellmuth
-              </div>
-            </div>
-            <div className="reveal" data-stagger={1}>
-              <div className="relative overflow-hidden" style={{ aspectRatio: "4/5" }}>
-                <img
-                  src={officeInterior}
-                  alt="Anwaltskanzlei Hellmuth & Rühling Leipzig — Bibliothek und Schreibtisch"
-                  loading="lazy"
-                  width={1600}
-                  height={1000}
-                  className="w-full h-full object-cover"
-                  style={{ filter: "contrast(1.05) saturate(0.9)" }}
-                />
-                <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{ background: "linear-gradient(180deg, rgba(7,7,7,0) 60%, rgba(7,7,7,0.6) 100%)" }}
-                />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <div id="rechtsgebiete">
-          <FeaturedAreas />
-        </div>
 
         <PracticeAreas />
 
